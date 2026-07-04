@@ -1,13 +1,18 @@
 from fastapi import FastAPI
 
-from app.api.v1.auth import router as auth_router
+from app.database.connection import engine
+
+from app.database.base import Base
+
+from app.models.user import User
 
 app = FastAPI(
     title="InterviewIQ API",
     version="1.0.0"
 )
 
-app.include_router(auth_router)
+
+Base.metadata.create_all(bind=engine)
 
 
 @app.get("/")
