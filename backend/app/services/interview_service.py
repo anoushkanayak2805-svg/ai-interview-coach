@@ -7,6 +7,12 @@ from app.ai.generators.question_generator import generate_questions
 from app.models.question import InterviewQuestion
 from app.repositories.question_repository import save_questions
 
+from app.repositories.interview_repository import (
+    update_interview,
+)
+from app.repositories.question_repository import (
+    get_questions_by_interview,
+)
 def create_new_interview(
     db: Session,
     user,
@@ -23,6 +29,21 @@ def create_new_interview(
     )
 
     return create_interview(
+        db,
+        interview
+    )
+def move_to_next_question(
+    db,
+    interview
+):
+
+    interview.current_question += 1
+
+    if interview.current_question > interview.total_questions:
+        interview.completed = 1
+        interview.status = "COMPLETED"
+
+    return update_interview(
         db,
         interview
     )
@@ -63,4 +84,13 @@ def generate_interview_questions(
     return save_questions(
         db,
         questions
+    )
+
+def get_interview_questions(
+    db,
+    interview_id: int
+):
+    return get_questions_by_interview(
+        db,
+        interview_id
     )

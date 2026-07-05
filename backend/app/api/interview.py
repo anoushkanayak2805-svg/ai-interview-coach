@@ -30,6 +30,9 @@ from app.schemas.question import QuestionResponse
 from app.repositories.question_repository import (
     get_questions_by_interview,
 )
+from app.services.interview_service import (
+    get_interview_questions,
+)
 router = APIRouter(
     prefix="/interviews",
     tags=["Interviews"],
@@ -126,5 +129,43 @@ def get_questions(
         interview_id
     )
 
+@router.post("/{interview_id}/next")
+def next_question(
+    interview_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
 
+    interview = get_interview_by_id(
+        db,
+        interview_id
+    )
 
+    if interview is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Interview not found"
+        )
+
+    if interview.user_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied"
+        )
+
+    return move_to_next_question(
+        db,
+        interview
+    )
+@router.get(
+    "/{interview_id}/questions"
+)
+def get_questions(
+    interview_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    return get_interview_questions(
+        db,
+        interview_id
+    )

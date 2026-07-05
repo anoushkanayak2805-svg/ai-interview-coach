@@ -17,6 +17,10 @@ def get_interviews_by_user(db: Session, user_id: int):
         .order_by(InterviewSession.created_at.desc())
         .all()
     )
+def update_interview(db, interview):
+    db.commit()
+    db.refresh(interview)
+    return interview
 
 def get_interview_by_id(
     db: Session,

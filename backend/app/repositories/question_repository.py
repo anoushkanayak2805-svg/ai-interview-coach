@@ -2,7 +2,6 @@ from sqlalchemy.orm import Session
 
 from app.models.question import InterviewQuestion
 
-
 def save_questions(
     db: Session,
     questions: list[InterviewQuestion]
@@ -18,6 +17,21 @@ def save_questions(
 
 def get_questions_by_interview(
     db: Session,
+    interview_id: int
+):
+    return (
+        db.query(InterviewQuestion)
+        .filter(
+            InterviewQuestion.interview_id == interview_id
+        )
+        .order_by(
+            InterviewQuestion.question_number
+        )
+        .all()
+    )
+
+def get_questions_by_interview(
+    db,
     interview_id: int
 ):
     return (

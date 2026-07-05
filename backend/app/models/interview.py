@@ -49,7 +49,21 @@ class InterviewSession(Base):
         String,
         default="CREATED"
     )
+    current_question = Column(
+    Integer,
+    default=1
+    )
 
+    completed = Column(
+        Integer,
+        default=0
+    )
+
+    total_questions = Column(
+        Integer,
+        default=10
+    )
+    
     created_at = Column(
         DateTime(timezone=True),
         server_default=func.now()
