@@ -7,11 +7,6 @@ class UserCreate(BaseModel):
     password: str
 
 
-class UserLogin(BaseModel):
-    email: EmailStr
-    password: str
-
-
 class UserResponse(BaseModel):
     id: int
     full_name: str
@@ -21,3 +16,6 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class UpdateProfile(BaseModel):
+    full_name: str
