@@ -1,12 +1,10 @@
-from sqlalchemy import Column
-from sqlalchemy import Integer
-from sqlalchemy import String
+from sqlalchemy import Boolean, Column, Integer, String, DateTime
+from sqlalchemy.sql import func
 
 from app.database import Base
 
 
 class User(Base):
-
     __tablename__ = "users"
 
     id = Column(
@@ -15,7 +13,7 @@ class User(Base):
         index=True
     )
 
-    name = Column(
+    full_name = Column(
         String,
         nullable=False
     )
@@ -29,5 +27,22 @@ class User(Base):
 
     hashed_password = Column(
         String,
+        nullable=False
+    )
+
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now()
+    )
+
+    is_active = Column(
+        Boolean,
+        default=True,
+        nullable=False
+    )
+
+    role = Column(
+        String,
+        default="user",
         nullable=False
     )

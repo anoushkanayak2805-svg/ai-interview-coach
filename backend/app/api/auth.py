@@ -18,7 +18,6 @@ def signup(
     user: UserCreate,
     db: Session = Depends(get_db)
 ):
-    # Check if email already exists
     existing_user = db.query(User).filter(User.email == user.email).first()
 
     if existing_user:
@@ -27,10 +26,7 @@ def signup(
             detail="Email already registered"
         )
 
-    # Create new user
-    new_user = create_user(db, user)
-
-    return new_user
+    return create_user(db, user)
 
 
 @router.post("/login")

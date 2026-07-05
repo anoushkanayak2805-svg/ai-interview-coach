@@ -8,9 +8,11 @@ from app.core.security import hash_password, verify_password
 def create_user(db: Session, user):
     try:
         db_user = User(
-            name=user.name,
+            full_name=user.full_name,
             email=user.email,
-            hashed_password=hash_password(user.password)
+            hashed_password=hash_password(user.password),
+            role="user",
+            is_active=True
         )
 
         db.add(db_user)
