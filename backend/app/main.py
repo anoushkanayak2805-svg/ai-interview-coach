@@ -1,22 +1,15 @@
 from fastapi import FastAPI
 
-from app.database.connection import engine
+from app.database import Base, engine
+from app.api.auth import router as auth_router
 
-from app.database.base import Base
-
-from app.models.user import User
-
-app = FastAPI(
-    title="InterviewIQ API",
-    version="1.0.0"
-)
-
-
+# Create database tables
 Base.metadata.create_all(bind=engine)
 
+app = FastAPI(title="AI Interview Coach API")
+
+app.include_router(auth_router)
 
 @app.get("/")
-def home():
-    return {
-        "message": "InterviewIQ Backend Running 🚀"
-    }
+def root():
+    return {"message": "AI Interview Coach API"}

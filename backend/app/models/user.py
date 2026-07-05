@@ -1,11 +1,8 @@
 from sqlalchemy import Column
 from sqlalchemy import Integer
 from sqlalchemy import String
-from sqlalchemy import DateTime
 
-from datetime import datetime
-
-from app.database.base import Base
+from app.database import Base
 
 
 class User(Base):
@@ -18,7 +15,7 @@ class User(Base):
         index=True
     )
 
-    full_name = Column(
+    name = Column(
         String,
         nullable=False
     )
@@ -26,15 +23,11 @@ class User(Base):
     email = Column(
         String,
         unique=True,
-        nullable=False
+        nullable=False,
+        index=True
     )
 
     hashed_password = Column(
         String,
         nullable=False
-    )
-
-    created_at = Column(
-        DateTime,
-        default=datetime.utcnow
     )
