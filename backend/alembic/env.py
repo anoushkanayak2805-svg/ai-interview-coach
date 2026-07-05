@@ -9,9 +9,7 @@ from app.core.config import settings
 from app.database import Base
 
 # Import all models here
-from app.models.user import User
-from app.models.interview import InterviewSession
-from app.models.question import InterviewQuestion
+import app.models
 
 config = context.config
 

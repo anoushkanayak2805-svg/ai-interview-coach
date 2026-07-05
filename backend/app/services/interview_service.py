@@ -2,8 +2,8 @@ from sqlalchemy.orm import Session
 
 from app.models.interview import InterviewSession
 from app.repositories.interview_repository import create_interview
+from app.ai.generators.question_generator import generate_questions
 
-from app.services.gemini_service import generate_questions
 from app.models.question import InterviewQuestion
 from app.repositories.question_repository import save_questions
 
