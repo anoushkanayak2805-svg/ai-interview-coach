@@ -33,6 +33,9 @@ from app.repositories.question_repository import (
 from app.services.interview_service import (
     get_interview_questions,
 )
+
+from app.schemas.answer import AnswerCreate
+from app.services.answer_service import submit_answer
 router = APIRouter(
     prefix="/interviews",
     tags=["Interviews"],
@@ -169,3 +172,27 @@ def get_questions(
         db,
         interview_id
     )
+
+@router.post(
+    "/{interview_id}/answer"
+)
+def submit_interview_answer(
+    interview_id: int,
+    answer: AnswerCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+
+    result = submit_answer(
+        db,
+        interview_id,
+        answer
+    )
+
+    if result is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Question not found"
+        )
+
+    return result

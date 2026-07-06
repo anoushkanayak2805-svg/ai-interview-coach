@@ -1,34 +1,43 @@
-from fastapi import APIRouter
-from fastapi import Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.dependencies.auth import get_current_user
 
 from app.schemas.answer import (
     AnswerCreate,
     AnswerResponse
 )
 
-from app.services.answer_service import save_answer
+from app.services.answer_service import submit_answer
 
 router = APIRouter(
-    prefix="/questions",
+    prefix="/interviews",
     tags=["Answers"]
 )
 
 
 @router.post(
-    "/{question_id}/answer",
+    "/{interview_id}/answer",
     response_model=AnswerResponse
 )
-def submit_answer(
-    question_id: int,
+def submit_interview_answer(
+    interview_id: int,
     answer: AnswerCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
 
-    return save_answer(
+    result = submit_answer(
         db,
-        question_id,
-        answer.answer_text
+        interview_id,
+        answer
     )
+
+    if result is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Question not found"
+        )
+
+    return result
