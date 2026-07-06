@@ -3,3 +3,4 @@ from .interview import InterviewSession
 from .question import InterviewQuestion
 from .answer import InterviewAnswer
 from .report import InterviewReport
+from app.models.resume import Resume
