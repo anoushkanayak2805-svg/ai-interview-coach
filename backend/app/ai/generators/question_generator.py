@@ -26,16 +26,18 @@ def generate_questions(
     role: str,
     difficulty: str,
     resume_text: str | None = None,
+    intelligence: dict | None = None,
 ):
     logger.info(
         f"Generating interview questions for {company} - {role}"
     )
 
     prompt = build_interview_prompt(
-        company,
-        role,
-        difficulty,
-        resume_text,
+        company=company,
+        role=role,
+        difficulty=difficulty,
+        resume_text=resume_text,
+        intelligence=intelligence,
     )
 
     start_time = time.time()
@@ -53,7 +55,7 @@ def generate_questions(
 
     text = response.text.strip()
 
-    # Remove markdown code blocks if Gemini wraps the JSON
+    # Remove markdown code blocks if Gemini wraps JSON
     if text.startswith("```"):
         text = (
             text.replace("```json", "")
@@ -85,15 +87,18 @@ def generate_questions(
         "category",
     ]
 
-    for index, question in enumerate(questions, start=1):
-
+    for index, question in enumerate(
+        questions,
+        start=1,
+    ):
         for field in required_fields:
-
             if field not in question:
                 raise ValueError(
                     f"Question {index} is missing '{field}'."
                 )
 
-    logger.info("Interview questions generated successfully")
+    logger.info(
+        "Interview questions generated successfully"
+    )
 
     return questions

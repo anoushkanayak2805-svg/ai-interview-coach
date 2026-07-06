@@ -3,43 +3,92 @@ def build_interview_prompt(
     role: str,
     difficulty: str,
     resume_text: str | None = None,
+    intelligence: dict | None = None,
 ):
-
     prompt = f"""
-You are an experienced Software Engineering interviewer.
+You are a Senior {company} Software Engineering Interviewer.
 
-Generate EXACTLY 10 interview questions.
+Generate exactly 10 interview questions.
 
-Company: {company}
-Role: {role}
-Difficulty: {difficulty}
+Company:
+{company}
+
+Role:
+{role}
+
+Difficulty:
+{difficulty}
 """
 
-    if resume_text:
+    # Use Resume Intelligence if available
+    if intelligence:
+
+        prompt += f"""
+
+Candidate Level:
+{intelligence.get("candidate_level", "")}
+
+Skills:
+{", ".join(intelligence.get("skills", []))}
+
+Projects:
+{", ".join(intelligence.get("projects", []))}
+
+Technologies:
+{", ".join(intelligence.get("technologies", []))}
+
+Recommended Interview Topics:
+{", ".join(intelligence.get("recommended_topics", []))}
+
+Weak Topics:
+{", ".join(intelligence.get("weak_topics", []))}
+
+Experience Summary:
+{intelligence.get("experience_summary", "")}
+
+Instructions:
+
+1. Tailor the interview to the candidate.
+2. Ask questions about their projects.
+3. Ask questions about the technologies they used.
+4. Focus more on weak topics.
+5. Include at least one behavioural question.
+6. If difficulty is Hard, include one System Design question.
+"""
+
+    # Fallback for resume text (older flow)
+    elif resume_text:
+
         prompt += f"""
 
 Candidate Resume:
 
 {resume_text}
 
-Generate questions that are personalized based on the candidate's resume.
+Generate interview questions using the resume.
+"""
+
+    else:
+
+        prompt += """
+
+Generate a balanced interview based only on the company, role and difficulty.
 """
 
     prompt += """
 
-Rules:
-1. Return EXACTLY 10 questions.
-2. Include a mix of technical, coding, system design (if applicable), behavioral, and role-specific questions.
-3. Do NOT include explanations.
-4. Do NOT wrap the response inside markdown.
-5. Return ONLY valid JSON.
+Return ONLY valid JSON.
 
-Return this exact format:
+Example:
 
 [
     {
-        "question": "Explain REST APIs.",
-        "category": "Technical"
+        "question": "Explain dependency injection in FastAPI.",
+        "category": "Backend"
+    },
+    {
+        "question": "How does JWT authentication work?",
+        "category": "Security"
     }
 ]
 """

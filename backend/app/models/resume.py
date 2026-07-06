@@ -6,8 +6,8 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
 )
-from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from app.database import Base
 
@@ -15,7 +15,11 @@ from app.database import Base
 class Resume(Base):
     __tablename__ = "resumes"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+    )
 
     user_id = Column(
         Integer,
@@ -38,9 +42,28 @@ class Resume(Base):
         nullable=True,
     )
 
+    # AI Resume Analysis
+    analysis = Column(
+        Text,
+        nullable=True,
+    )
+
+    skills = Column(
+        Text,
+        nullable=True,
+    )
+
+    projects = Column(
+        Text,
+        nullable=True,
+    )
+
     created_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
     )
 
-    user = relationship("User")
+    user = relationship(
+        "User",
+        back_populates="resumes",
+    )

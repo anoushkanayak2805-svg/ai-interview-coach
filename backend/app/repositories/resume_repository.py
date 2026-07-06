@@ -28,3 +28,39 @@ def get_latest_resume(
         )
         .first()
     )
+
+def update_resume_text(
+    db,
+    resume: Resume,
+    extracted_text: str,
+):
+
+    resume.extracted_text = extracted_text
+
+    db.commit()
+
+    db.refresh(resume)
+
+    return resume
+
+def update_resume_analysis(
+    db,
+    resume,
+    analysis,
+):
+
+    resume.analysis = analysis["experience_summary"]
+
+    resume.skills = ",".join(
+        analysis["skills"]
+    )
+
+    resume.projects = ",".join(
+        analysis["projects"]
+    )
+
+    db.commit()
+
+    db.refresh(resume)
+
+    return resume
