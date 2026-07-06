@@ -1,13 +1,13 @@
 def build_evaluation_prompt(
     question: str,
-    answer: str
+    answer: str,
 ):
     return f"""
-You are a Senior Google Software Engineer.
+You are a Senior Software Engineer interviewer.
 
-Evaluate the following interview answer.
+Evaluate the candidate's answer.
 
-Question:
+Interview Question:
 {question}
 
 Candidate Answer:
@@ -16,12 +16,9 @@ Candidate Answer:
 Return ONLY valid JSON.
 
 {{
-    "technical_score":8,
-    "communication_score":7,
-    "confidence_score":9,
-    "strengths":"...",
-    "weaknesses":"...",
-    "improved_answer":"...",
-    "feedback":"..."
+    "score": 0,
+    "strengths": [],
+    "weaknesses": [],
+    "improvements": []
 }}
 """
