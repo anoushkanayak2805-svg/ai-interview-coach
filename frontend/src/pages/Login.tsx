@@ -9,11 +9,8 @@ import {
   zodResolver,
 } from "@hookform/resolvers/zod";
 
-import {
-  loginSchema,
-  LoginForm,
-} from "../types/auth";
-
+import { loginSchema } from "../types/auth";
+import type { LoginForm } from "../types/auth";
 import {
   login,
 } from "../api/auth";

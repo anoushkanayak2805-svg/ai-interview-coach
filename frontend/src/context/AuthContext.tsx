@@ -5,17 +5,13 @@ import {
   ReactNode,
 } from "react";
 
-interface AuthContextType {
+type AuthContextType = {
   token: string | null;
-
   login: (token: string) => void;
-
   logout: () => void;
-}
+};
 
-const AuthContext = createContext<AuthContextType>(
-  {} as AuthContextType
-);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({
   children,
@@ -28,13 +24,11 @@ export function AuthProvider({
 
   function login(token: string) {
     localStorage.setItem("token", token);
-
     setToken(token);
   }
 
   function logout() {
     localStorage.removeItem("token");
-
     setToken(null);
   }
 
@@ -52,5 +46,11 @@ export function AuthProvider({
 }
 
 export function useAuth() {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+
+  if (!context) {
+    throw new Error("useAuth must be used inside AuthProvider");
+  }
+
+  return context;
 }
