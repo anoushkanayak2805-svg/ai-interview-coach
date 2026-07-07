@@ -17,12 +17,16 @@ from app.repositories.resume_repository import (
     get_latest_resume,
 )
 
-from app.ai.generators.question_generator import (
-    generate_questions,
-)
-
 from app.ai.analyzers.resume_intelligence import (
     analyze_resume,
+)
+
+from app.ai.profile.profile_builder import (
+    build_candidate_profile,
+)
+
+from app.ai.generators.question_generator import (
+    generate_questions,
 )
 
 
@@ -31,6 +35,10 @@ def create_new_interview(
     user,
     interview_data,
 ):
+    """
+    Create a new interview session.
+    """
+
     interview = InterviewSession(
         title=interview_data.title,
         company=interview_data.company,
@@ -47,59 +55,50 @@ def create_new_interview(
     )
 
 
-def move_to_next_question(
-    db: Session,
-    interview,
-):
-    interview.current_question += 1
-
-    if interview.current_question > interview.total_questions:
-        interview.completed = 1
-        interview.status = "COMPLETED"
-
-    return update_interview(
-        db,
-        interview,
-    )
-
-
 def generate_interview_questions(
     db: Session,
     interview,
 ):
     """
-    Generate interview questions.
+    Generate AI interview questions using:
 
-    If the user has uploaded a resume,
-    use Resume Intelligence to personalize
-    the interview.
-
-    Otherwise generate generic questions.
+    Resume
+        ↓
+    Resume Intelligence
+        ↓
+    Candidate Profile
+        ↓
+    Company Strategy
+        ↓
+    Gemini
     """
-
-    intelligence = None
-    resume_text = None
 
     resume = get_latest_resume(
         db,
         interview.user_id,
     )
 
+    resume_text = None
+    candidate = None
+
     if resume:
 
         resume_text = resume.extracted_text
 
-        if resume_text:
-            intelligence = analyze_resume(
-                resume_text,
-            )
+        intelligence = analyze_resume(
+            resume_text
+        )
+
+        candidate = build_candidate_profile(
+            intelligence
+        )
 
     ai_questions = generate_questions(
         company=interview.company,
         role=interview.role,
         difficulty=interview.difficulty,
+        candidate=candidate,
         resume_text=resume_text,
-        intelligence=intelligence,
     )
 
     questions = []
@@ -122,6 +121,27 @@ def generate_interview_questions(
     return save_questions(
         db,
         questions,
+    )
+
+
+def move_to_next_question(
+    db: Session,
+    interview,
+):
+    """
+    Move interview to the next question.
+    """
+
+    interview.current_question += 1
+
+    if interview.current_question > interview.total_questions:
+
+        interview.completed = 1
+        interview.status = "COMPLETED"
+
+    return update_interview(
+        db,
+        interview,
     )
 
 

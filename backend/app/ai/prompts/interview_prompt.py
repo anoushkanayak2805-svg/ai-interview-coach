@@ -1,96 +1,121 @@
 def build_interview_prompt(
-    company: str,
     role: str,
-    difficulty: str,
+    strategy: dict,
     resume_text: str | None = None,
-    intelligence: dict | None = None,
 ):
-    prompt = f"""
-You are a Senior {company} Software Engineering Interviewer.
+    """
+    Build the interview prompt using
+    Company Strategy + Resume Intelligence.
+    """
 
-Generate exactly 10 interview questions.
+    resume_section = ""
 
-Company:
-{company}
+    if resume_text:
+        resume_section = f"""
+Candidate Resume
+
+{resume_text}
+"""
+
+    return f"""
+You are a Senior {strategy["company"]} interviewer.
+
+Conduct an interview exactly like {strategy["company"]}.
+
+======================================================
+COMPANY INTERVIEW PROFILE
+======================================================
+
+Interview Style:
+{strategy["style"]}
+
+Technical Weight:
+{strategy["technical_weight"]}%
+
+Behavioral Weight:
+{strategy["behavioral_weight"]}%
+
+Coding Difficulty:
+{strategy["difficulty"]}
+
+Include System Design:
+{strategy["system_design"]}
+
+Preferred Topics:
+{", ".join(strategy["preferred_topics"])}
+
+Main Focus Areas:
+{", ".join(strategy["focus"])}
+
+======================================================
+CANDIDATE PROFILE
+======================================================
+
+Candidate Level:
+{strategy["candidate_level"]}
+
+Skills:
+{", ".join(strategy["skills"])}
+
+Projects:
+{", ".join(strategy["projects"])}
+
+Technologies:
+{", ".join(strategy["technologies"])}
+
+Weak Topics:
+{", ".join(strategy["weak_topics"])}
+
+Recommended Topics:
+{", ".join(strategy["recommended_topics"])}
+
+======================================================
+TARGET ROLE
+======================================================
 
 Role:
 {role}
 
-Difficulty:
-{difficulty}
-"""
+{resume_section}
 
-    # Use Resume Intelligence if available
-    if intelligence:
+======================================================
+RULES
+======================================================
 
-        prompt += f"""
+1. Generate EXACTLY 10 interview questions.
 
-Candidate Level:
-{intelligence.get("candidate_level", "")}
+2. Questions should match the interview style of the selected company.
 
-Skills:
-{", ".join(intelligence.get("skills", []))}
+3. Use the candidate's resume while asking questions.
 
-Projects:
-{", ".join(intelligence.get("projects", []))}
+4. Ask questions about the candidate's projects.
 
-Technologies:
-{", ".join(intelligence.get("technologies", []))}
+5. Ask questions about technologies used by the candidate.
 
-Recommended Interview Topics:
-{", ".join(intelligence.get("recommended_topics", []))}
+6. Ask follow-up questions on weak topics.
 
-Weak Topics:
-{", ".join(intelligence.get("weak_topics", []))}
+7. Prioritize the company's preferred topics.
 
-Experience Summary:
-{intelligence.get("experience_summary", "")}
+8. Mix technical and behavioral questions according to the specified weights.
 
-Instructions:
+9. If System Design is enabled, include ONE system design question.
 
-1. Tailor the interview to the candidate.
-2. Ask questions about their projects.
-3. Ask questions about the technologies they used.
-4. Focus more on weak topics.
-5. Include at least one behavioural question.
-6. If difficulty is Hard, include one System Design question.
-"""
+10. Questions should become progressively more challenging.
 
-    # Fallback for resume text (older flow)
-    elif resume_text:
+11. Return ONLY valid JSON.
 
-        prompt += f"""
-
-Candidate Resume:
-
-{resume_text}
-
-Generate interview questions using the resume.
-"""
-
-    else:
-
-        prompt += """
-
-Generate a balanced interview based only on the company, role and difficulty.
-"""
-
-    prompt += """
-
-Return ONLY valid JSON.
-
-Example:
+======================================================
+JSON FORMAT
+======================================================
 
 [
-    {
+    {{
         "question": "Explain dependency injection in FastAPI.",
         "category": "Backend"
-    },
-    {
-        "question": "How does JWT authentication work?",
-        "category": "Security"
-    }
+    }},
+    {{
+        "question": "Design a URL shortening service.",
+        "category": "System Design"
+    }}
 ]
 """
-
-    return prompt

@@ -3,8 +3,17 @@ from sqlalchemy.orm import Session
 from app.models.answer import InterviewAnswer
 from app.models.question import InterviewQuestion
 
-from app.repositories.answer_repository import save_answer
-from app.ai.evaluators.answer_evaluator import evaluate_answer
+from app.repositories.answer_repository import (
+    save_answer,
+)
+
+from app.repositories.question_repository import (
+    get_question_by_id,
+)
+
+from app.ai.evaluators.answer_evaluator import (
+    evaluate_answer,
+)
 
 from app.schemas.answer import AnswerCreate
 
@@ -14,12 +23,14 @@ def submit_answer(
     interview_id: int,
     answer_data: AnswerCreate,
 ):
-    question = (
-        db.query(InterviewQuestion)
-        .filter(
-            InterviewQuestion.id == answer_data.question_id
-        )
-        .first()
+    """
+    Save the candidate's answer after
+    evaluating it with Gemini.
+    """
+
+    question = get_question_by_id(
+        db,
+        answer_data.question_id,
     )
 
     if question is None:
@@ -32,7 +43,7 @@ def submit_answer(
 
     answer = InterviewAnswer(
         interview_id=interview_id,
-        question_id=answer_data.question_id,
+        question_id=answer.id if False else answer_data.question_id,
         answer_text=answer_data.answer_text,
 
         technical_score=evaluation["technical_score"],
@@ -46,7 +57,12 @@ def submit_answer(
         feedback=evaluation["feedback"],
     )
 
-    return save_answer(
+    answer = save_answer(
         db,
         answer,
     )
+
+    return {
+        "answer": answer,
+        "evaluation": evaluation,
+    }

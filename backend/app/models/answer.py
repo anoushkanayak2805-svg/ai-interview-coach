@@ -1,11 +1,15 @@
-from sqlalchemy import Column
-from sqlalchemy import Integer
-from sqlalchemy import Text
-from sqlalchemy import ForeignKey
-from sqlalchemy import DateTime
-from sqlalchemy import Float
+from sqlalchemy import (
+    Column,
+    Integer,
+    Float,
+    Text,
+    ForeignKey,
+    DateTime,
+)
 
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+
 from app.database import Base
 
 
@@ -16,58 +20,80 @@ class InterviewAnswer(Base):
     id = Column(
         Integer,
         primary_key=True,
-        index=True
+        index=True,
     )
 
     interview_id = Column(
         Integer,
         ForeignKey("interview_sessions.id"),
-        nullable=False
+        nullable=False,
     )
 
     question_id = Column(
         Integer,
         ForeignKey("interview_questions.id"),
-        nullable=False
+        nullable=False,
     )
 
     answer_text = Column(
         Text,
-        nullable=False
+        nullable=False,
     )
+
+    # -------------------------
+    # AI Evaluation Scores
+    # -------------------------
 
     technical_score = Column(
         Float,
-        default=0
+        default=0,
     )
 
     communication_score = Column(
         Float,
-        default=0
+        default=0,
     )
 
     confidence_score = Column(
         Float,
-        default=0
+        default=0,
     )
 
+    # -------------------------
+    # AI Feedback
+    # -------------------------
+
     strengths = Column(
-        Text
+        Text,
     )
 
     weaknesses = Column(
-        Text
+        Text,
     )
 
     improved_answer = Column(
-        Text
+        Text,
     )
 
     feedback = Column(
-        Text
+        Text,
     )
 
     created_at = Column(
         DateTime(timezone=True),
-        server_default=func.now()
+        server_default=func.now(),
+    )
+
+    # -------------------------
+    # Relationships
+    # -------------------------
+
+    interview = relationship(
+        "InterviewSession",
+        back_populates="answers",
+    )
+
+    question = relationship(
+        "InterviewQuestion",
+        back_populates="answers",
     )

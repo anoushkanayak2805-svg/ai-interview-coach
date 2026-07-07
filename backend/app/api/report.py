@@ -4,28 +4,25 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies.auth import get_current_user
 
-from app.schemas.answer import AnswerCreate
-
 from app.repositories.interview_repository import (
     get_interview_by_id,
 )
 
-from app.services.interview_engine import (
-    InterviewEngine,
+from app.services.report_service import (
+    generate_interview_report,
 )
 
 router = APIRouter(
     prefix="/interviews",
-    tags=["Answers"],
+    tags=["Reports"],
 )
 
 
-@router.post(
-    "/{interview_id}/answer",
+@router.get(
+    "/{interview_id}/report",
 )
-def submit_interview_answer(
+def get_report(
     interview_id: int,
-    answer: AnswerCreate,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
@@ -47,16 +44,7 @@ def submit_interview_answer(
             detail="Access denied",
         )
 
-    result = InterviewEngine.process_answer(
+    return generate_interview_report(
         db,
-        interview,
-        answer,
+        interview_id,
     )
-
-    if result is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Question not found",
-        )
-
-    return result
