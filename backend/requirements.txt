@@ -44,6 +44,7 @@ pydantic==2.13.4
 pydantic-settings==2.14.2
 pydantic_core==2.46.4
 pyparsing==3.3.2
+PyMuPDF==1.26.7
 python-dotenv==1.2.2
 python-jose==3.5.0
 python-multipart==0.0.32
@@ -63,4 +64,4 @@ uritemplate==4.2.0
 urllib3==2.7.0
 uvicorn==0.49.0
 watchfiles==1.2.0
-websockets==16.0
+websockets==16.0PyMuPDF==1.26.7
