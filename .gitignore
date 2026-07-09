@@ -1,26 +1,28 @@
-# Virtual environments
-venv/
-backend/venv/
-
-# Environment variables and secrets
-.env
-backend/.env
-frontend/.env
-
-# Python cache
+# Python
 __pycache__/
 *.pyc
+venv/
+.env
 
-# Uploaded resumes
-backend/uploads/resumes/
+# Uploaded user files
+backend/uploads/
+uploads/
 
 # Archives
 *.zip
 
-# Node dependencies
-node_modules/
+# Frontend
 frontend/node_modules/
-
-# Frontend builds
-dist/
 frontend/dist/
+
+# Environment files
+frontend/.env
+frontend/.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
