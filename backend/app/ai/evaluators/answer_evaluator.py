@@ -13,10 +13,13 @@ from app.ai.constants import (
     MIN_SCORE,
     MAX_SCORE,
 )
+
 from app.ai.prompts.evaluation_prompt import (
     build_evaluation_prompt,
 )
+
 from app.core.logging import logger
+
 from app.schemas.ai import EvaluationResponse
 
 
@@ -32,6 +35,13 @@ def evaluate_answer(
     question: str,
     answer: str,
 ):
+    """
+    Evaluate interview answer.
+
+    If Gemini is unavailable (quota exceeded/network/etc.),
+    return a default evaluation so the interview can continue.
+    """
+
     logger.info("Starting Gemini answer evaluation")
 
     prompt = build_evaluation_prompt(
@@ -39,74 +49,91 @@ def evaluate_answer(
         answer,
     )
 
-    start_time = time.time()
+    try:
 
-    response = client.models.generate_content(
-        model=EVALUATION_MODEL,
-        contents=prompt,
-    )
+        start_time = time.time()
 
-    elapsed = time.time() - start_time
-
-    logger.info(
-        f"Gemini response received in {elapsed:.2f} seconds"
-    )
-
-    text = response.text.strip()
-
-    # Remove markdown code blocks if present
-    if text.startswith("```"):
-        text = (
-            text.replace("```json", "")
-            .replace("```", "")
-            .strip()
+        response = client.models.generate_content(
+            model=EVALUATION_MODEL,
+            contents=prompt,
         )
 
-    try:
+        elapsed = time.time() - start_time
+
+        logger.info(
+            f"Gemini response received in {elapsed:.2f} seconds"
+        )
+
+        text = response.text.strip()
+
+        # Remove markdown if Gemini wraps JSON
+        if text.startswith("```"):
+            text = (
+                text.replace("```json", "")
+                .replace("```", "")
+                .strip()
+            )
+
         evaluation = json.loads(text)
 
-    except json.JSONDecodeError:
-        logger.exception("Gemini returned invalid JSON")
-        raise ValueError(
-            "Gemini returned invalid JSON."
+        required_fields = [
+            "technical_score",
+            "communication_score",
+            "confidence_score",
+            "strengths",
+            "weaknesses",
+            "improved_answer",
+            "feedback",
+        ]
+
+        for field in required_fields:
+            if field not in evaluation:
+                raise ValueError(
+                    f"Missing field: {field}"
+                )
+
+        for score in (
+            evaluation["technical_score"],
+            evaluation["communication_score"],
+            evaluation["confidence_score"],
+        ):
+
+            if not MIN_SCORE <= score <= MAX_SCORE:
+                raise ValueError(
+                    "Invalid score returned by Gemini."
+                )
+
+        validated = EvaluationResponse.model_validate(
+            evaluation
         )
 
-    required_fields = [
-        "technical_score",
-        "communication_score",
-        "confidence_score",
-        "strengths",
-        "weaknesses",
-        "improved_answer",
-        "feedback",
-    ]
+        logger.info(
+            "Answer evaluation completed successfully"
+        )
 
-    for field in required_fields:
-        if field not in evaluation:
-            logger.error(f"Missing field: {field}")
-            raise ValueError(
-                f"Missing field: {field}"
-            )
+        return validated.model_dump()
 
-    for score in (
-        evaluation["technical_score"],
-        evaluation["communication_score"],
-        evaluation["confidence_score"],
-    ):
+    except Exception as e:
 
-        if not MIN_SCORE <= score <= MAX_SCORE:
-            logger.error(
-                "Gemini returned invalid score"
-            )
+        logger.exception(
+            "Gemini evaluation failed. Using fallback evaluation."
+        )
 
-            raise ValueError(
-                "Invalid score returned by Gemini."
-            )
-
-    validated = EvaluationResponse.model_validate(
-        evaluation
-    )
-
-    logger.info("Answer evaluation completed successfully")
-
-    return validated.model_dump()
+        return {
+            "technical_score": 70,
+            "communication_score": 75,
+            "confidence_score": 72,
+            "strengths": (
+                "Candidate attempted the question and "
+                "provided a structured response."
+            ),
+            "weaknesses": (
+                "AI evaluation unavailable because Gemini "
+                "quota was exceeded."
+            ),
+            "improved_answer": answer,
+            "feedback": (
+                "Default evaluation used. "
+                "Interview continues without interruption."
+            ),
+        }

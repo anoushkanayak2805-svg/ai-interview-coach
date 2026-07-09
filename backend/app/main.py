@@ -1,15 +1,15 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.auth import router as auth_router
 from app.api.interview import router as interview_router
 from app.api.answer import router as answer_router
 from app.api.resume import router as resume_router
+from app.api.report import router as report_router
 
 from app.core.exception_handlers import (
     register_exception_handlers,
 )
-from app.api.report import router as report_router
-
 
 app = FastAPI(
     title="AI Interview Coach Pro",
@@ -45,13 +45,28 @@ Technology Stack
     version="1.0.0",
 )
 
+# -----------------------------
+# CORS
+# -----------------------------
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# -----------------------------
 # Register Global Exception Handlers
+# -----------------------------
 register_exception_handlers(app)
 
 # -----------------------------
 # Routers
 # -----------------------------
-
 app.include_router(auth_router)
 app.include_router(interview_router)
 app.include_router(answer_router)
@@ -61,7 +76,6 @@ app.include_router(report_router)
 # -----------------------------
 # Root Endpoint
 # -----------------------------
-
 @app.get("/", tags=["Home"])
 def root():
     return {
@@ -70,11 +84,9 @@ def root():
         "version": "1.0.0",
     }
 
-
 # -----------------------------
 # Health Check
 # -----------------------------
-
 @app.get("/health", tags=["Health"])
 def health_check():
     return {

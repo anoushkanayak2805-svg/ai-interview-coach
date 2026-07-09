@@ -29,6 +29,8 @@ from app.ai.generators.question_generator import (
     generate_questions,
 )
 
+from app.core.logging import logger
+
 
 def create_new_interview(
     db: Session,
@@ -60,17 +62,17 @@ def generate_interview_questions(
     interview,
 ):
     """
-    Generate AI interview questions using:
+    Generate interview questions.
+
+    Flow:
 
     Resume
         ↓
-    Resume Intelligence
+    Resume Intelligence (optional)
         ↓
     Candidate Profile
         ↓
-    Company Strategy
-        ↓
-    Gemini
+    Question Generator
     """
 
     resume = get_latest_resume(
@@ -85,21 +87,44 @@ def generate_interview_questions(
 
         resume_text = resume.extracted_text
 
-        intelligence = analyze_resume(
-            resume_text
+        try:
+
+            intelligence = analyze_resume(
+                resume_text
+            )
+
+            candidate = build_candidate_profile(
+                intelligence
+            )
+
+        except Exception as e:
+
+            logger.exception(
+                "Resume intelligence failed. Falling back to default candidate profile."
+            )
+
+            logger.exception(e)
+
+            # generate_questions() already handles candidate=None
+            candidate = None
+
+    try:
+
+        ai_questions = generate_questions(
+            company=interview.company,
+            role=interview.role,
+            difficulty=interview.difficulty,
+            candidate=candidate,
+            resume_text=resume_text,
         )
 
-        candidate = build_candidate_profile(
-            intelligence
+    except Exception as e:
+
+        logger.exception(
+            "Question generation failed."
         )
 
-    ai_questions = generate_questions(
-        company=interview.company,
-        role=interview.role,
-        difficulty=interview.difficulty,
-        candidate=candidate,
-        resume_text=resume_text,
-    )
+        raise e
 
     questions = []
 

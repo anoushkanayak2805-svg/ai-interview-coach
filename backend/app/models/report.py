@@ -2,7 +2,6 @@ from sqlalchemy import (
     Column,
     Integer,
     Float,
-    String,
     Text,
     ForeignKey,
     DateTime,
@@ -15,7 +14,6 @@ from app.database import Base
 
 
 class InterviewReport(Base):
-
     __tablename__ = "interview_reports"
 
     id = Column(
@@ -31,66 +29,54 @@ class InterviewReport(Base):
         unique=True,
     )
 
-    # -------------------------
-    # Overall Scores
-    # -------------------------
-
     overall_score = Column(
         Float,
-        default=0.0,
+        nullable=False,
     )
 
     technical_score = Column(
         Float,
-        default=0.0,
+        nullable=False,
     )
 
     communication_score = Column(
         Float,
-        default=0.0,
+        nullable=False,
     )
 
     confidence_score = Column(
         Float,
-        default=0.0,
+        nullable=False,
     )
-
-    # -------------------------
-    # AI Hiring Decision
-    # -------------------------
 
     hiring_recommendation = Column(
-        String(50),
-        default="Pending",
+        Text,
+        nullable=True,
     )
-
-    # -------------------------
-    # AI Feedback
-    # -------------------------
 
     summary = Column(
         Text,
-        default="",
+        nullable=True,
     )
 
     strengths = Column(
         Text,
-        default="",
+        nullable=True,
     )
 
     weaknesses = Column(
         Text,
-        default="",
+        nullable=True,
     )
 
     recommendations = Column(
         Text,
-        default="",
+        nullable=True,
     )
 
     learning_roadmap = Column(
         Text,
-        default="",
+        nullable=True,
     )
 
     created_at = Column(
@@ -98,10 +84,8 @@ class InterviewReport(Base):
         server_default=func.now(),
     )
 
-    # -------------------------
-    # Relationships
-    # -------------------------
-
+    # Must match back_populates="interview"
+    # in the InterviewSession model
     interview = relationship(
         "InterviewSession",
         back_populates="report",

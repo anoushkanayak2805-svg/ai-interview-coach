@@ -12,34 +12,47 @@ import AICoachCard from "../components/dashboard/AICoachCard";
 
 import { getDashboard } from "../api/dashboard";
 
+interface Report {
+  overall_score: number;
+}
+
+interface Interview {
+  company: string;
+}
+
 export default function Dashboard() {
 
-  const [dashboardData, setDashboardData] = useState({
+  const [dashboardData, setDashboardData] = useState<{
+    interviews: Interview[];
+    reports: Report[];
+  }>({
     interviews: [],
     reports: [],
   });
 
   useEffect(() => {
-
     async function loadDashboard() {
-
       try {
-
         const data = await getDashboard();
-
         setDashboardData(data);
-
       } catch (error) {
-
         console.error(error);
-
       }
-
     }
 
     loadDashboard();
-
   }, []);
+
+  // Greeting
+  const hour = new Date().getHours();
+
+  let greeting = "Good Evening";
+
+  if (hour < 12) {
+    greeting = "Good Morning";
+  } else if (hour < 17) {
+    greeting = "Good Afternoon";
+  }
 
   const interviewCount = dashboardData.interviews.length;
 
@@ -47,8 +60,7 @@ export default function Dashboard() {
     dashboardData.reports.length > 0
       ? Math.round(
           dashboardData.reports.reduce(
-            (sum: number, report: any) =>
-              sum + (report.overall_score ?? 0),
+            (sum, report) => sum + (report.overall_score ?? 0),
             0
           ) / dashboardData.reports.length
         )
@@ -59,7 +71,7 @@ export default function Dashboard() {
       ? dashboardData.interviews[0].company
       : "Not Set";
 
-  // We'll replace this later when the backend exposes streak data
+  // TODO: Replace with backend value later
   const practiceStreak = 7;
 
   return (
@@ -78,7 +90,7 @@ export default function Dashboard() {
           </p>
 
           <h1 className="mt-2 text-4xl font-bold text-slate-900">
-            Good Afternoon 👋
+            {greeting} 👋
           </h1>
 
           <p className="mt-2 text-lg text-slate-500">

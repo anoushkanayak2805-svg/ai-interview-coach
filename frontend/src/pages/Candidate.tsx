@@ -15,12 +15,30 @@ export default function Candidate() {
     try {
       setLoading(true);
 
-      await uploadResume(file);
+      console.log("Uploading file:", file.name);
+
+      const response = await uploadResume(file);
+
+      console.log("========== UPLOAD SUCCESS ==========");
+      console.log(response);
+      console.log("====================================");
 
       alert("Resume uploaded successfully!");
-    } catch (error) {
+
+    } catch (error: any) {
+
+      console.error("========== UPLOAD ERROR ==========");
       console.error(error);
+
+      if (error.response) {
+        console.error("Status:", error.response.status);
+        console.error("Response Data:", error.response.data);
+      }
+
+      console.error("==================================");
+
       alert("Resume upload failed.");
+
     } finally {
       setLoading(false);
     }
@@ -31,24 +49,34 @@ export default function Candidate() {
       <Navbar />
 
       <div className="mx-auto max-w-6xl px-8 py-8">
+
         <div className="rounded-3xl bg-gradient-to-r from-indigo-600 to-blue-600 p-8 text-white shadow-lg">
-          <h1 className="text-4xl font-bold">Candidate Profile</h1>
+
+          <h1 className="text-4xl font-bold">
+            Candidate Profile
+          </h1>
 
           <p className="mt-3">
             Upload your resume to personalize your AI interview experience.
           </p>
+
         </div>
 
         <div className="mt-8 rounded-3xl bg-white p-8 shadow-lg">
-          <h2 className="text-2xl font-bold">Resume Upload</h2>
+
+          <h2 className="text-2xl font-bold">
+            Resume Upload
+          </h2>
 
           <input
             type="file"
             accept=".pdf"
             className="mt-6 w-full rounded-xl border p-4"
-            onChange={(e) =>
-              setFile(e.target.files?.[0] ?? null)
-            }
+            onChange={(e) => {
+              if (e.target.files && e.target.files.length > 0) {
+                setFile(e.target.files[0]);
+              }
+            }}
           />
 
           <button
@@ -58,8 +86,11 @@ export default function Candidate() {
           >
             {loading ? "Uploading..." : "Upload Resume"}
           </button>
+
         </div>
+
       </div>
+
     </div>
   );
 }

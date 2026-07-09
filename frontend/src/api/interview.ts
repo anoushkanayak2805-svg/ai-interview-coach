@@ -24,12 +24,13 @@ export interface InterviewResponse {
 export interface Question {
   id: number;
   question: string;
-  answer?: string;
+  category?: string;
+  difficulty?: string;
 }
 
 export interface SubmitAnswerRequest {
   question_id: number;
-  answer: string;
+  answer_text: string;
 }
 
 /* ---------- APIs ---------- */
@@ -46,14 +47,16 @@ export async function createInterview(
   return data;
 }
 
-// Interview List
+// Get All Interviews
 export async function getInterviews(): Promise<InterviewResponse[]> {
-  const { data } = await api.get<InterviewResponse[]>("/interviews");
+  const { data } = await api.get<InterviewResponse[]>(
+    "/interviews"
+  );
 
   return data;
 }
 
-// Single Interview
+// Get Single Interview
 export async function getInterview(
   id: number | string
 ): Promise<InterviewResponse> {
@@ -88,7 +91,7 @@ export async function submitAnswer(
   return data;
 }
 
-// Next Question
+// Move to Next Question
 export async function nextQuestion(
   id: number | string
 ) {

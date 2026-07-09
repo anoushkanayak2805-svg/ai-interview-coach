@@ -32,23 +32,30 @@ export default function App() {
         }
       />
 
-      {/* Public */}
+      {/* Public Routes */}
       <Route
         path="/login"
         element={
-          token ? <Navigate to="/dashboard" replace /> : <Login />
+          token ? (
+            <Navigate to="/dashboard" replace />
+          ) : (
+            <Login />
+          )
         }
       />
 
       <Route
         path="/register"
         element={
-          token ? <Navigate to="/dashboard" replace /> : <Register />
+          token ? (
+            <Navigate to="/dashboard" replace />
+          ) : (
+            <Register />
+          )
         }
       />
 
-      {/* Protected */}
-
+      {/* Dashboard */}
       <Route
         path="/dashboard"
         element={
@@ -58,6 +65,7 @@ export default function App() {
         }
       />
 
+      {/* Candidate Profile */}
       <Route
         path="/candidate"
         element={
@@ -67,6 +75,7 @@ export default function App() {
         }
       />
 
+      {/* Companies */}
       <Route
         path="/companies"
         element={
@@ -76,6 +85,7 @@ export default function App() {
         }
       />
 
+      {/* Create Interview */}
       <Route
         path="/interviews/create"
         element={
@@ -85,6 +95,7 @@ export default function App() {
         }
       />
 
+      {/* Interview Room */}
       <Route
         path="/interview/:id"
         element={
@@ -94,6 +105,7 @@ export default function App() {
         }
       />
 
+      {/* Reports History */}
       <Route
         path="/reports"
         element={
@@ -103,6 +115,17 @@ export default function App() {
         }
       />
 
+      {/* Single Interview Report */}
+      <Route
+        path="/reports/:id"
+        element={
+          <ProtectedRoute>
+            <Report />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Analytics */}
       <Route
         path="/analytics"
         element={
@@ -112,6 +135,7 @@ export default function App() {
         }
       />
 
+      {/* Profile */}
       <Route
         path="/profile"
         element={
@@ -121,6 +145,7 @@ export default function App() {
         }
       />
 
+      {/* Settings */}
       <Route
         path="/settings"
         element={
@@ -131,7 +156,6 @@ export default function App() {
       />
 
       {/* 404 */}
-
       <Route
         path="*"
         element={

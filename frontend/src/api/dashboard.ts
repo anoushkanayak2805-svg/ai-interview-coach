@@ -1,18 +1,28 @@
 import api from "./axios";
 
-export interface DashboardData {
-  interviews: any[];
-  reports: any[];
-}
+export async function getDashboard() {
+  try {
+    const interviewsPromise = api.get("/interviews");
 
-export async function getDashboard(): Promise<DashboardData> {
-  const [interviews, reports] = await Promise.all([
-    api.get("/interviews"),
-    api.get("/reports"),
-  ]);
+    const reportsPromise = api
+      .get("/reports")
+      .catch(() => ({ data: [] }));
 
-  return {
-    interviews: interviews.data,
-    reports: reports.data,
-  };
+    const [interviews, reports] = await Promise.all([
+      interviewsPromise,
+      reportsPromise,
+    ]);
+
+    return {
+      interviews: interviews.data,
+      reports: reports.data,
+    };
+  } catch (error) {
+    console.error(error);
+
+    return {
+      interviews: [],
+      reports: [],
+    };
+  }
 }

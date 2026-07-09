@@ -9,6 +9,7 @@ from tenacity import (
 
 from app.ai.client import client
 from app.ai.constants import QUESTION_MODEL
+from app.ai.fallback_questions import TECHNICAL_QUESTIONS
 
 from app.ai.profile.candidate_profile import (
     CandidateProfile,
@@ -41,15 +42,18 @@ def generate_questions(
     resume_text: str | None = None,
 ):
     """
-    Generate personalized interview questions using:
+    Generate personalized interview questions.
 
-    Resume
-        ↓
-    Candidate Profile
-        ↓
-    Company Strategy
-        ↓
-    Gemini
+    Flow:
+        Resume
+            ↓
+        Candidate Profile
+            ↓
+        Company Strategy
+            ↓
+        Gemini AI
+            ↓
+        Fallback Questions (if Gemini fails)
     """
 
     logger.info(
@@ -57,7 +61,6 @@ def generate_questions(
     )
 
     if candidate is None:
-
         candidate = CandidateProfile(
             candidate_level="Unknown",
             career_level="Unknown",
@@ -89,72 +92,68 @@ def generate_questions(
         resume_text=resume_text,
     )
 
-    start_time = time.time()
+    try:
+        start_time = time.time()
 
-    response = client.models.generate_content(
-        model=QUESTION_MODEL,
-        contents=prompt,
-    )
-
-    elapsed = time.time() - start_time
-
-    logger.info(
-        f"Question generation completed in {elapsed:.2f} seconds"
-    )
-
-    text = response.text.strip()
-
-    # Remove markdown code blocks if Gemini wraps JSON
-    if text.startswith("```"):
-        text = (
-            text.replace("```json", "")
-            .replace("```", "")
-            .strip()
+        response = client.models.generate_content(
+            model=QUESTION_MODEL,
+            contents=prompt,
         )
 
-    try:
+        elapsed = time.time() - start_time
+
+        logger.info(
+            f"Question generation completed in {elapsed:.2f} seconds"
+        )
+
+        text = response.text.strip()
+
+        # Remove markdown if Gemini wraps JSON
+        if text.startswith("```"):
+            text = (
+                text.replace("```json", "")
+                .replace("```", "")
+                .strip()
+            )
+
         questions = json.loads(text)
 
-    except json.JSONDecodeError:
+        if not isinstance(questions, list):
+            raise ValueError(
+                "Gemini response is not a JSON list."
+            )
 
+        if len(questions) != 10:
+            raise ValueError(
+                f"Expected 10 questions, received {len(questions)}."
+            )
+
+        required_fields = [
+            "question",
+            "category",
+        ]
+
+        for index, question in enumerate(
+            questions,
+            start=1,
+        ):
+            for field in required_fields:
+                if field not in question:
+                    raise ValueError(
+                        f"Question {index} is missing '{field}'."
+                    )
+
+        logger.info(
+            "Interview questions generated successfully"
+        )
+
+        return questions
+
+    except Exception as e:
         logger.exception(
-            "Gemini returned invalid JSON"
+            "Gemini unavailable. Using fallback questions."
         )
 
-        raise ValueError(
-            "Gemini returned invalid JSON."
-        )
+        logger.warning(str(e))
 
-    if not isinstance(questions, list):
-        raise ValueError(
-            "Gemini response is not a JSON list."
-        )
-
-    if len(questions) != 10:
-        raise ValueError(
-            f"Expected 10 questions, received {len(questions)}."
-        )
-
-    required_fields = [
-        "question",
-        "category",
-    ]
-
-    for index, question in enumerate(
-        questions,
-        start=1,
-    ):
-
-        for field in required_fields:
-
-            if field not in question:
-
-                raise ValueError(
-                    f"Question {index} is missing '{field}'."
-                )
-
-    logger.info(
-        "Interview questions generated successfully"
-    )
-
-    return questions
+        return TECHNICAL_QUESTIONS
