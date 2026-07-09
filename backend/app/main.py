@@ -25,27 +25,18 @@ Production-ready AI Interview Platform
 Features
 
 • JWT Authentication
-
 • Resume Intelligence
-
 • AI Interview Generation
-
 • AI Answer Evaluation
-
 • Hiring Report Generation
 
 Technology Stack
 
 • FastAPI
-
 • PostgreSQL
-
 • SQLAlchemy
-
 • Alembic
-
 • Gemini AI
-
 • React (Frontend)
 """,
     version="1.0.0",
@@ -59,8 +50,12 @@ Technology Stack
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        # Local development
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+
+        # Production frontend
+        "https://ai-interview-coach-gold.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
