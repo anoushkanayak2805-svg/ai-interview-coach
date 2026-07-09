@@ -2,9 +2,9 @@ import {
   createContext,
   useContext,
   useState,
-  ReactNode,
 } from "react";
 
+import type { ReactNode } from "react";
 type AuthContextType = {
   token: string | null;
   login: (token: string) => void;

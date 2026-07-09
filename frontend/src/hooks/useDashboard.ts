@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
+
 import {
-  DashboardResponse,
   getDashboard,
+  type DashboardData,
 } from "../api/dashboard";
 
 export function useDashboard() {
   const [data, setData] =
-    useState<DashboardResponse | null>(null);
+    useState<DashboardData | null>(null);
 
   const [loading, setLoading] =
     useState(true);
@@ -15,29 +16,29 @@ export function useDashboard() {
     useState("");
 
   useEffect(() => {
-
     async function loadDashboard() {
-
       try {
+        setLoading(true);
+        setError("");
 
         const result = await getDashboard();
 
         setData(result);
+      } catch (error) {
+        console.error(
+          "Unable to load dashboard:",
+          error
+        );
 
-      } catch {
-
-        setError("Unable to load dashboard.");
-
+        setError(
+          "Unable to load dashboard."
+        );
       } finally {
-
         setLoading(false);
-
       }
-
     }
 
     loadDashboard();
-
   }, []);
 
   return {

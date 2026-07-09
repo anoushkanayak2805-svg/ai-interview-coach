@@ -1,20 +1,32 @@
+import type {
+  ButtonHTMLAttributes,
+  ReactNode,
+} from "react";
+
+interface ButtonProps
+  extends ButtonHTMLAttributes<HTMLButtonElement> {
+  children: ReactNode;
+}
+
 const Button = ({
-    children,
-    type = "button",
-    onClick,
-    className = "",
-    disabled = false,
-}) => {
-    return (
-        <button
-            type={type}
-            onClick={onClick}
-            disabled={disabled}
-            className={`w-full bg-blue-600 hover:bg-blue-700 transition text-white py-3 rounded-lg font-semibold disabled:opacity-50 ${className}`}
-        >
-            {children}
-        </button>
-    );
+  children,
+  type = "button",
+  onClick,
+  className = "",
+  disabled = false,
+  ...props
+}: ButtonProps) => {
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={`w-full rounded-lg bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50 ${className}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
 };
 
 export default Button;
