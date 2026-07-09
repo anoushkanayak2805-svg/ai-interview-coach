@@ -49,11 +49,10 @@ export default function Register() {
       setLoading(true);
 
       await api.post("/auth/signup", {
-        name: name.trim(),
-        email: email.trim(),
-        password,
+      full_name: name.trim(),
+      email: email.trim(),
+      password,
       });
-
       navigate("/login");
 
     } catch (error: unknown) {
