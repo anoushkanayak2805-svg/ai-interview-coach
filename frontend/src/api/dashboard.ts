@@ -53,6 +53,7 @@ export interface DashboardData {
   recommendedFocus: string;
 }
 
+
 /* ---------- Empty Dashboard ---------- */
 
 const emptyDashboard: DashboardData = {
@@ -74,6 +75,50 @@ const emptyDashboard: DashboardData = {
     "Complete an interview to receive personalized recommendations.",
 };
 
+
+/* ---------- Calculate Overall Score ---------- */
+
+function calculateOverallScore(
+  report: DashboardReport
+): number {
+  const technical = Number(
+    report.technical_score
+  );
+
+  const communication = Number(
+    report.communication_score
+  );
+
+  const confidence = Number(
+    report.confidence_score
+  );
+
+  const scores = [
+    technical,
+    communication,
+    confidence,
+  ].filter(
+    (score) =>
+      Number.isFinite(score) &&
+      score >= 0
+  );
+
+  if (scores.length === 0) {
+    return 0;
+  }
+
+  return Number(
+    (
+      scores.reduce(
+        (total, score) =>
+          total + score,
+        0
+      ) / scores.length
+    ).toFixed(2)
+  );
+}
+
+
 /* ---------- Dashboard API ---------- */
 
 export async function getDashboard(): Promise<DashboardData> {
@@ -86,7 +131,9 @@ export async function getDashboard(): Promise<DashboardData> {
     */
 
     const interviewsPromise =
-      api.get<DashboardInterview[]>("/interviews");
+      api.get<DashboardInterview[]>(
+        "/interviews"
+      );
 
     const reportsPromise = api
       .get<DashboardReport[]>("/reports")
@@ -109,44 +156,55 @@ export async function getDashboard(): Promise<DashboardData> {
       reportsPromise,
     ]);
 
+
     const interviews =
       interviewsResponse.data ?? [];
 
-    const reports =
+    const rawReports =
       reportsResponse.data ?? [];
+
+
+    /* ---------- Normalize Reports ---------- */
+
+    /*
+      Calculate overall score from the actual
+      technical, communication, and confidence
+      component scores.
+
+      This prevents an old or inconsistent
+      overall_score value from causing the
+      dashboard to display incorrect results.
+    */
+
+    const normalizedReports: DashboardReport[] =
+      rawReports.map((report) => ({
+        ...report,
+
+        overall_score:
+          calculateOverallScore(report),
+      }));
+
 
     /* ---------- Valid Reports ---------- */
 
-    /*
-      Only use reports that contain a valid
-      numeric overall score.
+    const validReports =
+      normalizedReports.filter(
+        (report) =>
+          Number.isFinite(
+            Number(report.overall_score)
+          )
+      );
 
-      This prevents invalid or incomplete reports
-      from affecting dashboard statistics.
-    */
-
-    const validReports = reports.filter(
-      (report) =>
-        report.overall_score !== null &&
-        report.overall_score !== undefined &&
-        !Number.isNaN(
-          Number(report.overall_score)
-        )
-    );
 
     /* ---------- Report Interview IDs ---------- */
 
-    /*
-      If an interview has a report, then it is
-      effectively completed even if the backend
-      status still says CREATED.
-    */
-
     const reportedInterviewIds = new Set(
       validReports.map(
-        (report) => report.interview_id
+        (report) =>
+          report.interview_id
       )
     );
+
 
     /* ---------- Normalize Interview Status ---------- */
 
@@ -155,10 +213,13 @@ export async function getDashboard(): Promise<DashboardData> {
         ...interview,
 
         status:
-          reportedInterviewIds.has(interview.id)
+          reportedInterviewIds.has(
+            interview.id
+          )
             ? "COMPLETED"
             : interview.status,
       }));
+
 
     /* ---------- Interview Statistics ---------- */
 
@@ -171,6 +232,7 @@ export async function getDashboard(): Promise<DashboardData> {
           interview.status?.toUpperCase() ===
           "COMPLETED"
       ).length;
+
 
     /* ---------- Average Score ---------- */
 
@@ -188,6 +250,7 @@ export async function getDashboard(): Promise<DashboardData> {
           )
         : 0;
 
+
     /* ---------- Latest Report ---------- */
 
     const sortedReports = [
@@ -196,12 +259,14 @@ export async function getDashboard(): Promise<DashboardData> {
       /*
         Prefer created_at when available.
 
-        If created_at is unavailable, use report ID
-        as a fallback because newer database records
-        normally have larger IDs.
+        If created_at is unavailable,
+        use report ID as fallback.
       */
 
-      if (a.created_at && b.created_at) {
+      if (
+        a.created_at &&
+        b.created_at
+      ) {
         return (
           new Date(
             b.created_at
@@ -215,47 +280,60 @@ export async function getDashboard(): Promise<DashboardData> {
       return b.id - a.id;
     });
 
+
     const latestReport =
       sortedReports.length > 0
         ? sortedReports[0]
         : null;
+
 
     /* ---------- Recommended Focus ---------- */
 
     let recommendedFocus =
       "Complete an interview to receive personalized recommendations.";
 
+
     if (latestReport) {
       const scores = [
         {
           area: "Technical Skills",
+
           score: Number(
-            latestReport.technical_score ?? 0
+            latestReport
+              .technical_score ?? 0
           ),
         },
 
         {
           area: "Communication",
+
           score: Number(
-            latestReport.communication_score ?? 0
+            latestReport
+              .communication_score ?? 0
           ),
         },
 
         {
           area: "Confidence",
+
           score: Number(
-            latestReport.confidence_score ?? 0
+            latestReport
+              .confidence_score ?? 0
           ),
         },
       ];
 
+
       scores.sort(
-        (a, b) => a.score - b.score
+        (a, b) =>
+          a.score - b.score
       );
+
 
       recommendedFocus =
         scores[0].area;
     }
+
 
     /* ---------- Final Dashboard Data ---------- */
 
@@ -296,6 +374,7 @@ export async function getDashboard(): Promise<DashboardData> {
 
       recommendedFocus,
     };
+
   } catch (error) {
     console.error(
       "Failed to load dashboard:",
@@ -310,6 +389,7 @@ export async function getDashboard(): Promise<DashboardData> {
       },
 
       interviews: [],
+
       reports: [],
     };
   }
